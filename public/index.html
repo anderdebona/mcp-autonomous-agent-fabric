@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Context Protocol (MCP) Agent Fabric Inspector | anderdebona</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070913;
+      --panel: rgba(15, 23, 42, 0.75);
+      --border: rgba(236, 72, 153, 0.2);
+      --accent: #ec4899;
+      --accent-glow: rgba(236, 72, 153, 0.4);
+      --cyan: #06b6d4;
+      --green: #10b981;
+      --text: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 2rem; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    .brand { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 1rem; padding: 1.5rem; }
+    .btn { background: linear-gradient(135deg, #ec4899, #d946ef); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer; }
+    pre { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border); padding: 1rem; border-radius: 0.5rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #f472b6; overflow-x: auto; max-height: 250px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="brand">👑 Model Context Protocol (MCP) Agent Fabric</div>
+      <div style="font-size: 0.85rem; color: #94a3b8;">Anthropic & OpenAI Compatible Agent Governance Fabric • anderdebona</div>
+    </div>
+    <span style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(244, 114, 182, 0.3); padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700;">MCP Protocol Spec 2026</span>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>1. MCP Registered Sandboxed Tools (`tools/list`)</h2>
+      <button class="btn" onclick="fetchTools()" style="margin-top: 1rem; margin-bottom: 1rem;">Fetch MCP Tools Registry</button>
+      <pre id="toolsList">Click button to query MCP JSON-RPC 2.0 tools/list...</pre>
+    </div>
+
+    <div class="panel">
+      <h2>2. Execute MCP Sandboxed Tool (`tools/call`)</h2>
+      <div style="margin-top: 1rem; margin-bottom: 1rem;">
+        <input type="text" id="sqlInput" value="SELECT * FROM users;" style="width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 0.5rem; margin-bottom: 1rem;">
+        <button class="btn" onclick="executeMcpTool()">Invoke query_database_sandbox</button>
+      </div>
+      <h2>MCP JSON-RPC 2.0 Response</h2>
+      <pre id="rpcOutput">Awaiting tool execution...</pre>
+    </div>
+  </div>
+
+  <script>
+    async function fetchTools() {
+      const res = await fetch('/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/list'
+        })
+      });
+      const data = await res.json();
+      document.getElementById('toolsList').innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function executeMcpTool() {
+      const sqlQuery = document.getElementById('sqlInput').value;
+      const res = await fetch('/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'tools/call',
+          params: {
+            name: 'query_database_sandbox',
+            arguments: { sqlQuery }
+          }
+        })
+      });
+      const data = await res.json();
+      document.getElementById('rpcOutput').innerText = JSON.stringify(data, null, 2);
+    }
+
+    window.onload = fetchTools;
+  </script>
+</body>
+</html>
