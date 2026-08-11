@@ -113,3 +113,39 @@ describe('Capability Negotiation', () => {
     expect(neg.isCapabilityActive(result, 'sampling')).toBe(false);
   });
 });
+
+import { ResourceProvider } from '../src/mcp/resource-provider.js';
+import { MCPEventBus } from '../src/mcp/event-bus.js';
+
+describe('Resource Provider', () => {
+  it('should register and retrieve resources', () => {
+    const rp = new ResourceProvider();
+    rp.register({ uri: 'file:///data.json', name: 'Data', mimeType: 'application/json', content: '{}' });
+    expect(rp.get('file:///data.json')?.name).toBe('Data');
+    expect(rp.list().length).toBe(1);
+  });
+  it('should search resources by name', () => {
+    const rp = new ResourceProvider();
+    rp.register({ uri: 'a', name: 'Alpha Config', mimeType: 'text/plain', content: 'abc' });
+    rp.register({ uri: 'b', name: 'Beta Data', mimeType: 'text/plain', content: 'xyz' });
+    expect(rp.search('alpha').length).toBe(1);
+  });
+});
+
+describe('Event Bus', () => {
+  it('should emit events and notify listeners', () => {
+    const bus = new MCPEventBus();
+    let received = false;
+    bus.on('tool_call', () => { received = true; });
+    bus.emit('tool_call', { tool: 'test' });
+    expect(received).toBe(true);
+    expect(bus.getLog().length).toBe(1);
+  });
+  it('should maintain event log', () => {
+    const bus = new MCPEventBus();
+    bus.emit('session_start', {});
+    bus.emit('tool_call', {});
+    bus.emit('session_end', {});
+    expect(bus.getLog().length).toBe(3);
+  });
+});

@@ -1,6 +1,6 @@
 {
   "name": "mcp-autonomous-agent-fabric",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Production-Grade Model Context Protocol (MCP) Server & Autonomous Agent Interoperability Governance Fabric",
   "bin": {
     "mcp-agent-fabric": "./dist/cli.js"
