@@ -149,3 +149,78 @@ describe('Event Bus', () => {
     expect(bus.getLog().length).toBe(3);
   });
 });
+
+describe('DistributedAgentMeshRouter (v4.0.0)', () => {
+  it('should route tasks based on capability and least busy strategy', async () => {
+    const { DistributedAgentMeshRouter } = await import('../src/mcp/mesh-router.js');
+    const router = new DistributedAgentMeshRouter();
+
+    router.registerNode({
+      id: 'agent-sql',
+      name: 'SQL Specialist',
+      capabilities: ['sql_query', 'db_optimize'],
+      status: 'ONLINE',
+      activeTasks: 2,
+      avgLatencyMs: 45,
+    });
+
+    router.registerNode({
+      id: 'agent-sql-idle',
+      name: 'Idle SQL Worker',
+      capabilities: ['sql_query'],
+      status: 'ONLINE',
+      activeTasks: 0,
+      avgLatencyMs: 50,
+    });
+
+    const route = router.routeTask({
+      taskId: 'task-1',
+      requiredCapability: 'sql_query',
+      payload: {},
+    }, 'LEAST_BUSY');
+
+    expect(route.success).toBe(true);
+    expect(route.assignedAgentId).toBe('agent-sql-idle');
+  });
+
+  it('should return error when no candidate node has required capability', async () => {
+    const { DistributedAgentMeshRouter } = await import('../src/mcp/mesh-router.js');
+    const router = new DistributedAgentMeshRouter();
+    const route = router.routeTask({
+      taskId: 'task-2',
+      requiredCapability: 'quantum_simulation',
+      payload: {},
+    });
+    expect(route.success).toBe(false);
+  });
+});
+
+describe('PolicyGovernorInterceptor (v4.0.0)', () => {
+  it('should block dangerous SQL drop commands', async () => {
+    const { PolicyGovernorInterceptor } = await import('../src/mcp/policy-governor.js');
+    const governor = new PolicyGovernorInterceptor();
+
+    const decision = governor.evaluate({
+      clientRole: 'DEVELOPER',
+      toolName: 'query_database_sandbox',
+      argumentsPayload: { query: 'DROP TABLE production_users;' },
+    });
+
+    expect(decision.allowed).toBe(false);
+    expect(decision.reason).toContain('violated security pattern');
+  });
+
+  it('should allow valid queries from authorized clients', async () => {
+    const { PolicyGovernorInterceptor } = await import('../src/mcp/policy-governor.js');
+    const governor = new PolicyGovernorInterceptor();
+
+    const decision = governor.evaluate({
+      clientRole: 'DEVELOPER',
+      toolName: 'query_database_sandbox',
+      argumentsPayload: { query: 'SELECT count(*) FROM users;' },
+    });
+
+    expect(decision.allowed).toBe(true);
+  });
+});
+

@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software in research or agent infrastructure, please cite it as below."
+authors:
+  - family-names: "Debona"
+    given-names: "Anderson"
+    alias: "anderdebona"
+title: "MCP Autonomous Agent Fabric: Anthropic Model Context Protocol Server & Multi-Agent Mesh Governance"
+version: 4.0.0
+date-released: 2026-08-13
+url: "https://github.com/anderdebona/mcp-autonomous-agent-fabric"
+license: MIT
