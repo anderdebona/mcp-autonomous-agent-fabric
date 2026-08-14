@@ -3,91 +3,203 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Model Context Protocol (MCP) Agent Fabric Inspector | anderdebona</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <title>MCP Autonomous Agent Fabric Studio | anderdebona</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #070913;
-      --panel: rgba(15, 23, 42, 0.75);
-      --border: rgba(236, 72, 153, 0.2);
-      --accent: #ec4899;
-      --accent-glow: rgba(236, 72, 153, 0.4);
+      --bg: #030712;
+      --panel: rgba(15, 23, 42, 0.8);
+      --border: rgba(168, 85, 247, 0.25);
+      --purple: #a855f7;
       --cyan: #06b6d4;
       --green: #10b981;
-      --text: #f8fafc;
+      --red: #f43f5e;
+      --text: #f9fafb;
+      --text-dim: #94a3b8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 2rem; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
-    .brand { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 1rem; padding: 1.5rem; }
-    .btn { background: linear-gradient(135deg, #ec4899, #d946ef); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer; }
-    pre { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border); padding: 1rem; border-radius: 0.5rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #f472b6; overflow-x: auto; max-height: 250px; }
+    body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: var(--text); padding: 1.5rem; min-height: 100vh; background-image: radial-gradient(circle at 10% 20%, rgba(168, 85, 247, 0.08) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.08) 0%, transparent 40%); }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    .brand { font-size: 1.6rem; font-weight: 700; background: linear-gradient(135deg, #c084fc, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .status-badge { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(216, 180, 254, 0.3); padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1rem; text-align: center; }
+    .stat-val { font-size: 1.8rem; font-weight: 700; font-family: 'Fira Code', monospace; color: #c084fc; margin-top: 0.25rem; }
+    .stat-lbl { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .main-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 1.5rem; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.25rem; backdrop-filter: blur(12px); }
+    .panel-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; color: #e9d5ff; }
+
+    canvas { width: 100%; height: 200px; background: rgba(2, 6, 23, 0.95); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 0.5rem; display: block; margin-bottom: 1rem; }
+
+    .btn { background: linear-gradient(135deg, #a855f7, #7e22ce); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: 0.2s all; }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3); }
+    .btn-red { background: linear-gradient(135deg, #f43f5e, #be123c); }
+
+    .controls { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    pre { background: rgba(2, 6, 23, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.75rem; border-radius: 0.5rem; font-family: 'Fira Code', monospace; font-size: 0.8rem; color: #d8b4fe; overflow-x: auto; max-height: 180px; }
   </style>
 </head>
 <body>
   <header>
     <div>
-      <div class="brand">👑 Model Context Protocol (MCP) Agent Fabric</div>
-      <div style="font-size: 0.85rem; color: #94a3b8;">Anthropic & OpenAI Compatible Agent Governance Fabric • anderdebona</div>
+      <div class="brand">👑 Model Context Protocol (MCP) Agent Fabric Studio 🤖</div>
+      <div style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.2rem;">Multi-Agent Mesh Routing • Policy Governor Interceptor • EventBus Pub/Sub • by anderdebona</div>
     </div>
-    <span style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(244, 114, 182, 0.3); padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700;">MCP Protocol Spec 2026</span>
+    <span class="status-badge">● MCP Server v4.0 Active</span>
   </header>
 
-  <div class="grid">
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-lbl">Connected Agents</div>
+      <div class="stat-val" id="statNodes">3 Online</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">Avg Mesh Latency</div>
+      <div class="stat-val" id="statMeshLatency">28 ms</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">Policy Guard Status</div>
+      <div class="stat-val" style="color: var(--green);">ENFORCING</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">Protocol Compliance</div>
+      <div class="stat-val" style="color: var(--cyan);">JSON-RPC 2.0</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
     <div class="panel">
-      <h2>1. MCP Registered Sandboxed Tools (`tools/list`)</h2>
-      <button class="btn" onclick="fetchTools()" style="margin-top: 1rem; margin-bottom: 1rem;">Fetch MCP Tools Registry</button>
-      <pre id="toolsList">Click button to query MCP JSON-RPC 2.0 tools/list...</pre>
+      <div class="panel-title">
+        <span>🌐 Multi-Agent Mesh Swarm Radar</span>
+        <span style="font-size: 0.75rem; color: var(--text-dim);">Dynamic Discovery</span>
+      </div>
+      <canvas id="radarCanvas"></canvas>
+      <div class="controls">
+        <button class="btn" onclick="routeTask('query_database_sandbox')">Route SQL Query</button>
+        <button class="btn" onclick="routeTask('summarize_temporal_graph')">Route Temporal RAG</button>
+        <button class="btn" onclick="routeTask('inspect_system_metrics')">Route Audit Task</button>
+      </div>
+      <div class="panel-title" style="margin-top: 1rem;"><span>📡 Mesh Task Route Result</span></div>
+      <pre id="routeLog">Click a button to route task through agent fabric...</pre>
     </div>
 
     <div class="panel">
-      <h2>2. Execute MCP Sandboxed Tool (`tools/call`)</h2>
-      <div style="margin-top: 1rem; margin-bottom: 1rem;">
-        <input type="text" id="sqlInput" value="SELECT * FROM users;" style="width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 0.5rem; margin-bottom: 1rem;">
-        <button class="btn" onclick="executeMcpTool()">Invoke query_database_sandbox</button>
+      <div class="panel-title">
+        <span>🛡️ Policy Governor Security Interceptor</span>
       </div>
-      <h2>MCP JSON-RPC 2.0 Response</h2>
-      <pre id="rpcOutput">Awaiting tool execution...</pre>
+      <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 0.5rem;">
+        Tests tool invocation safety against SQL injection, DROP TABLE mutations, and unauthorized access.
+      </p>
+      <div class="controls">
+        <button class="btn" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981;" onclick="testPolicy('SELECT count(*) FROM metrics;', 'query_database_sandbox')">Test Safe Query</button>
+        <button class="btn btn-red" onclick="testPolicy('DROP TABLE users; --', 'query_database_sandbox')">Test Malicious DROP TABLE</button>
+      </div>
+      <pre id="policyLog">Awaiting policy test...</pre>
+
+      <div class="panel-title" style="margin-top: 1.25rem;">
+        <span>📜 Live EventBus Broadcast Stream</span>
+      </div>
+      <pre id="eventsLog">Connecting to event stream...</pre>
     </div>
   </div>
 
   <script>
-    async function fetchTools() {
-      const res = await fetch('/mcp', {
+    const canvas = document.getElementById('radarCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 200;
+
+    let angle = 0;
+    const nodes = [
+      { name: 'SQL Specialist', angle: 0.5, dist: 60, color: '#06b6d4' },
+      { name: 'Temporal RAG', angle: 2.2, dist: 70, color: '#a855f7' },
+      { name: 'Security Auditor', angle: 4.0, dist: 55, color: '#10b981' }
+    ];
+
+    function drawRadar() {
+      ctx.fillStyle = 'rgba(2, 6, 23, 0.2)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      // Draw radar rings
+      ctx.strokeStyle = 'rgba(168, 85, 247, 0.2)';
+      ctx.lineWidth = 1;
+      [30, 60, 85].forEach(r => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      // Draw sweep beam
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, 90, angle, angle + 0.3);
+      ctx.fillStyle = 'rgba(168, 85, 247, 0.15)';
+      ctx.fill();
+
+      // Draw nodes
+      nodes.forEach(n => {
+        const nx = cx + Math.cos(n.angle) * n.dist;
+        const ny = cy + Math.sin(n.angle) * n.dist;
+        ctx.beginPath();
+        ctx.arc(nx, ny, 6, 0, Math.PI * 2);
+        ctx.fillStyle = n.color;
+        ctx.shadowColor = n.color;
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '10px Space Grotesk';
+        ctx.fillText(n.name, nx + 8, ny + 3);
+      });
+
+      angle += 0.03;
+      requestAnimationFrame(drawRadar);
+    }
+    drawRadar();
+
+    async function routeTask(cap) {
+      const res = await fetch('/api/mesh/route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requiredCapability: cap })
+      });
+      const data = await res.json();
+      document.getElementById('routeLog').innerText = JSON.stringify(data, null, 2);
+      loadEvents();
+    }
+
+    async function testPolicy(query, tool) {
+      const res = await fetch('/api/governor/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'tools/list'
+          clientRole: 'DEVELOPER',
+          toolName: tool,
+          argumentsPayload: { query }
         })
       });
       const data = await res.json();
-      document.getElementById('toolsList').innerText = JSON.stringify(data, null, 2);
+      document.getElementById('policyLog').innerText = JSON.stringify(data, null, 2);
+      loadEvents();
     }
 
-    async function executeMcpTool() {
-      const sqlQuery = document.getElementById('sqlInput').value;
-      const res = await fetch('/mcp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 2,
-          method: 'tools/call',
-          params: {
-            name: 'query_database_sandbox',
-            arguments: { sqlQuery }
-          }
-        })
-      });
+    async function loadEvents() {
+      const res = await fetch('/api/events');
       const data = await res.json();
-      document.getElementById('rpcOutput').innerText = JSON.stringify(data, null, 2);
+      document.getElementById('eventsLog').innerText = JSON.stringify(data.events, null, 2);
     }
 
-    window.onload = fetchTools;
+    window.onload = () => {
+      routeTask('query_database_sandbox');
+      loadEvents();
+    };
   </script>
 </body>
 </html>

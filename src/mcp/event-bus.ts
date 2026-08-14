@@ -1,4 +1,4 @@
-export type MCPEventType = 'tool_call' | 'resource_read' | 'session_start' | 'session_end' | 'error';
+export type MCPEventType = 'tool_call' | 'resource_read' | 'session_start' | 'session_end' | 'error' | 'mcp_request' | 'task_routed' | 'policy_evaluated';
 export interface MCPEvent { type: MCPEventType; timestamp: number; payload: Record<string, any>; }
 export class MCPEventBus {
   private listeners: Map<MCPEventType, Array<(event: MCPEvent) => void>> = new Map();
