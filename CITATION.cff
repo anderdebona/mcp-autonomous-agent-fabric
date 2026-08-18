@@ -5,7 +5,7 @@ authors:
     given-names: "Anderson"
     alias: "anderdebona"
 title: "MCP Autonomous Agent Fabric: Anthropic Model Context Protocol Server & Multi-Agent Mesh Governance"
-version: 4.0.0
-date-released: 2026-08-13
+version: 5.0.0
+date-released: 2026-08-18
 url: "https://github.com/anderdebona/mcp-autonomous-agent-fabric"
 license: MIT

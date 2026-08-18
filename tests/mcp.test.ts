@@ -224,3 +224,64 @@ describe('PolicyGovernorInterceptor (v4.0.0)', () => {
   });
 });
 
+describe('StreamingSSETransport (v5.0.0)', () => {
+  it('should multiplex streaming chunks to active subscribers and cleanly close on CHUNK_END', async () => {
+    const { StreamingSSETransport } = await import('../src/mcp/streaming-sse-transport.js');
+    const transport = new StreamingSSETransport();
+    const receivedChunks: any[] = [];
+    let closed = false;
+
+    const unsubscribe = transport.subscribe('stream-1', {
+      id: 'sub-1',
+      onChunk: (chunk) => receivedChunks.push(chunk),
+      onClose: () => { closed = true; }
+    });
+
+    transport.emitChunk('stream-1', 'CHUNK_START', { title: 'Starting tool execution' });
+    transport.emitChunk('stream-1', 'CHUNK_DELTA', { token: 'Analyzing AST nodes...' });
+    transport.emitChunk('stream-1', 'CHUNK_END', { status: 'COMPLETED' });
+
+    expect(receivedChunks.length).toBe(3);
+    expect(receivedChunks[0].seqNumber).toBe(1);
+    expect(receivedChunks[1].payload.token).toContain('Analyzing');
+    expect(closed).toBe(true);
+    expect(transport.getActiveStreamCount()).toBe(0);
+  });
+});
+
+describe('SemanticToolSynthesizer (v5.0.0)', () => {
+  it('should execute a multi-hop synthesized tool pipeline topologically', async () => {
+    const { SemanticToolSynthesizer } = await import('../src/mcp/semantic-tool-synthesizer.js');
+    const synthesizer = new SemanticToolSynthesizer();
+
+    const pipeline = [
+      {
+        stepId: 'step_fetch',
+        toolName: 'fetch_document',
+        inputMapping: (ctx: any) => ({ docId: ctx.targetDocId }),
+        outputKey: 'docResult'
+      },
+      {
+        stepId: 'step_summarize',
+        toolName: 'summarize_text',
+        inputMapping: (ctx: any) => ({ text: ctx.docResult.content, maxWords: 20 }),
+        outputKey: 'summaryResult'
+      },
+      {
+        stepId: 'step_format',
+        toolName: 'format_json_response',
+        inputMapping: (ctx: any) => ({ data: ctx.summaryResult, format: 'json' }),
+        outputKey: 'finalJson'
+      }
+    ];
+
+    const result = await synthesizer.executePipeline('pipe-1', { targetDocId: 'DOC-404' }, pipeline);
+    expect(result.status).toBe('COMPLETED');
+    expect(result.stepTraces.length).toBe(3);
+    expect(result.finalOutput.docResult.docId).toBe('DOC-404');
+    expect(result.finalOutput.summaryResult.summary).toContain('Summarized');
+    expect(result.finalOutput.finalJson.format).toBe('json');
+  });
+});
+
+

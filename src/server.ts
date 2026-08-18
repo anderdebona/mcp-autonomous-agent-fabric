@@ -5,6 +5,8 @@ import { MCPAgentFabricServer } from './mcp/server.js';
 import { DistributedAgentMeshRouter } from './mcp/mesh-router.js';
 import { PolicyGovernorInterceptor } from './mcp/policy-governor.js';
 import { MCPEventBus } from './mcp/event-bus.js';
+import { StreamingSSETransport } from './mcp/streaming-sse-transport.js';
+import { SemanticToolSynthesizer } from './mcp/semantic-tool-synthesizer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +21,8 @@ const mcpServer = new MCPAgentFabricServer();
 const meshRouter = new DistributedAgentMeshRouter();
 const policyGovernor = new PolicyGovernorInterceptor();
 const eventBus = new MCPEventBus();
+const sseTransport = new StreamingSSETransport();
+const toolSynthesizer = new SemanticToolSynthesizer();
 
 // Initialize default agent swarm nodes
 meshRouter.registerNode({
@@ -83,10 +87,37 @@ app.post('/api/governor/evaluate', (req, res) => {
   res.json({ decision, auditLog: policyGovernor.getAuditLog().slice(-5) });
 });
 
+app.post('/api/synthesize/pipeline', async (req, res) => {
+  const { targetDocId = 'DOC-900' } = req.body;
+  const pipeline = [
+    {
+      stepId: 'step_1_vector_fetch',
+      toolName: 'fetch_document',
+      inputMapping: (ctx: any) => ({ docId: ctx.targetDocId }),
+      outputKey: 'document'
+    },
+    {
+      stepId: 'step_2_semantic_summary',
+      toolName: 'summarize_text',
+      inputMapping: (ctx: any) => ({ text: ctx.document.content, maxWords: 30 }),
+      outputKey: 'summary'
+    },
+    {
+      stepId: 'step_3_json_format',
+      toolName: 'format_json_response',
+      inputMapping: (ctx: any) => ({ data: ctx.summary, format: 'application/json' }),
+      outputKey: 'finalResponse'
+    }
+  ];
+
+  const trace = await toolSynthesizer.executePipeline(`pipe_${Date.now()}`, { targetDocId }, pipeline);
+  res.json(trace);
+});
+
 app.get('/api/events', (req, res) => {
   res.json({ events: eventBus.getLog().slice(-15) });
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Model Context Protocol (MCP) Server Turbocharged on http://localhost:${PORT}`);
+  console.log(`🚀 Model Context Protocol (MCP) Server v5.0.0 on http://localhost:${PORT}`);
 });
