@@ -284,4 +284,58 @@ describe('SemanticToolSynthesizer (v5.0.0)', () => {
   });
 });
 
+describe('MCPClusterSentinel (v6.0.0)', () => {
+  it('should register servers, record heartbeats, and route to lowest-latency healthy server', async () => {
+    const { MCPClusterSentinel } = await import('../src/mcp/mcp-cluster-sentinel.js');
+    const sentinel = new MCPClusterSentinel();
+
+    sentinel.registerServer({
+      serverId: 'srv-1',
+      name: 'FileSystem Server',
+      endpoint: 'http://localhost:4001',
+      capabilities: ['read_file', 'write_file']
+    });
+
+    sentinel.registerServer({
+      serverId: 'srv-2',
+      name: 'FileSystem Replica',
+      endpoint: 'http://localhost:4002',
+      capabilities: ['read_file']
+    });
+
+    sentinel.recordHeartbeat('srv-1', 45);
+    sentinel.recordHeartbeat('srv-2', 12);
+
+    const target = sentinel.routeToolToHealthyServer('read_file');
+    expect(target).not.toBeNull();
+    expect(target?.serverId).toBe('srv-2'); // lowest latency
+
+    // Trigger failures on srv-2
+    sentinel.reportFailure('srv-2');
+    sentinel.reportFailure('srv-2');
+    sentinel.reportFailure('srv-2');
+
+    const fallback = sentinel.routeToolToHealthyServer('read_file');
+    expect(fallback?.serverId).toBe('srv-1'); // fails over to srv-1
+  });
+});
+
+describe('DAGToolExecutionPlanner (v6.0.0)', () => {
+  it('should plan parallel execution waves for dependent tool tasks', async () => {
+    const { DAGToolExecutionPlanner } = await import('../src/mcp/dag-tool-execution-planner.js');
+    const tasks = [
+      { taskId: 't1', toolName: 'fetchA', params: {}, dependencies: [], status: 'PENDING' as const },
+      { taskId: 't2', toolName: 'fetchB', params: {}, dependencies: [], status: 'PENDING' as const },
+      { taskId: 't3', toolName: 'combine', params: {}, dependencies: ['t1', 't2'], status: 'PENDING' as const },
+    ];
+
+    const plan = DAGToolExecutionPlanner.planExecution(tasks);
+    expect(plan.isAcyclic).toBe(true);
+    expect(plan.waves.length).toBe(2);
+    expect(plan.waves[0].parallelTaskIds).toEqual(['t1', 't2']); // Wave 0: parallel fetch
+    expect(plan.waves[1].parallelTaskIds).toEqual(['t3']);       // Wave 1: combine
+  });
+});
+
+
 

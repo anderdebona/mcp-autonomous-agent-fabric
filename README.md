@@ -4,12 +4,12 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Version](https://img.shields.io/badge/Version-v5.0.0%20Ultra-00d2ff?style=for-the-badge)](https://github.com/anderdebona/mcp-autonomous-agent-fabric)
+[![Version](https://img.shields.io/badge/Version-v6.0.0%20Hyper--Engine-00d2ff?style=for-the-badge)](https://github.com/anderdebona/mcp-autonomous-agent-fabric)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing%20100%25-success?style=for-the-badge&logo=githubactions)](https://github.com/anderdebona/mcp-autonomous-agent-fabric/actions)
 
 <br />
 
-**PhD-Grade Model Context Protocol (MCP) Autonomous Agent Fabric: Streaming SSE Multiplexers, Semantic Multi-Hop Tool Synthesizers & Distributed Mesh Routers**
+**PhD-Grade Model Context Protocol (MCP) Autonomous Agent Fabric: Distributed Cluster Sentinel, DAG Tool Execution Planner, Streaming SSE Multiplexers & Distributed Mesh Routers**
 
 *Engineered with precision by **[anderdebona](https://github.com/anderdebona)***
 

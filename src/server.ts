@@ -7,6 +7,8 @@ import { PolicyGovernorInterceptor } from './mcp/policy-governor.js';
 import { MCPEventBus } from './mcp/event-bus.js';
 import { StreamingSSETransport } from './mcp/streaming-sse-transport.js';
 import { SemanticToolSynthesizer } from './mcp/semantic-tool-synthesizer.js';
+import { MCPClusterSentinel } from './mcp/mcp-cluster-sentinel.js';
+import { DAGToolExecutionPlanner } from './mcp/dag-tool-execution-planner.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +25,21 @@ const policyGovernor = new PolicyGovernorInterceptor();
 const eventBus = new MCPEventBus();
 const sseTransport = new StreamingSSETransport();
 const toolSynthesizer = new SemanticToolSynthesizer();
+const clusterSentinel = new MCPClusterSentinel();
+
+// Seed initial MCP servers
+clusterSentinel.registerServer({
+  serverId: 'mcp-node-01',
+  name: 'Primary FileSystem Server',
+  endpoint: 'http://localhost:4010',
+  capabilities: ['read_file', 'write_file', 'list_directory']
+});
+clusterSentinel.registerServer({
+  serverId: 'mcp-node-02',
+  name: 'Code Search Vector Engine',
+  endpoint: 'http://localhost:4020',
+  capabilities: ['vector_search', 'semantic_lookup']
+});
 
 // Initialize default agent swarm nodes
 meshRouter.registerNode({
@@ -118,6 +135,20 @@ app.get('/api/events', (req, res) => {
   res.json({ events: eventBus.getLog().slice(-15) });
 });
 
+app.get('/api/mcp/cluster', (req, res) => {
+  res.json(clusterSentinel.getClusterStatus());
+});
+
+app.post('/api/mcp/plan', (req, res) => {
+  const sampleTasks = [
+    { taskId: 'task_search', toolName: 'vector_search', params: { q: 'AST metrics' }, dependencies: [], status: 'PENDING' as const },
+    { taskId: 'task_read', toolName: 'read_file', params: { path: 'metrics.ts' }, dependencies: [], status: 'PENDING' as const },
+    { taskId: 'task_reason', toolName: 'synthesize', params: {}, dependencies: ['task_search', 'task_read'], status: 'PENDING' as const },
+  ];
+  const plan = DAGToolExecutionPlanner.planExecution(sampleTasks);
+  res.json(plan);
+});
+
 app.listen(PORT, () => {
-  console.log(`🚀 Model Context Protocol (MCP) Server v5.0.0 on http://localhost:${PORT}`);
+  console.log(`🚀 Model Context Protocol (MCP) Server v6.0.0 on http://localhost:${PORT}`);
 });
